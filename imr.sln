@@ -5,6 +5,12 @@ VisualStudioVersion = 15.0.27428.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageReciever", "WindowsFormsApp1\ImageReciever.csproj", "{35E52A66-D928-498C-BC46-C972BA1D4438}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1F9298C2-602C-42B7-8D31-CA789A0A08ED}"
+	ProjectSection(SolutionItems) = preProject
+		imgcat = imgcat
+		imgcat.cmd = imgcat.cmd
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

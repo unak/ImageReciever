@@ -1,0 +1,37 @@
+#!/usr/bin/ruby
+require "optparse"
+require "socket"
+require "yaml"
+
+host = "127.0.0.1"
+port = 13908
+
+begin
+  setting = YAML.load(File.read(File.expand_path(".imgcat", "~")))
+  host = setting["host"] || host
+  port = setting["port"] || port
+rescue Errno::ENOENT
+  # nothing to do
+end
+
+OptionParser.new do |opt|
+  opt.on("-h", "--host=fqdn|address", "specify host (default=#{host})"){|v| host = v}
+  opt.on("-p", "--port=num", "specify port (default=#{port})"){|v| port = Integer(v)}
+
+  opt.parse!(ARGV)
+end
+
+sock = TCPSocket.new(host, port)
+if ARGV.empty?
+  src = STDIN
+  need_close = false
+else
+  src = open(ARGV.shift)
+  need_close = true
+end
+src.binmode
+
+sock.write(src.read)
+
+sock.close
+src.close if need_close
