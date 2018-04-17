@@ -1,5 +1,5 @@
 @ruby -x "%~f0" %*
-@exit 1
+@goto :EOF
 #!/usr/bin/ruby
 require "optparse"
 require "socket"
