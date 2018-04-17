@@ -68,8 +68,13 @@ namespace ImageReciever
                         }
                         Invoke((MethodInvoker)(() =>
                         {
+                            var oldImage = pictureBox.Image;
                             pictureBox.Image = null;
                             pictureBox.Refresh();
+                            if (oldImage != null)
+                            {
+                                oldImage.Dispose();
+                            }
                             Thread.Sleep(100);  // わざと0.1秒待って、空白表示時間を作る
                             pictureBox.Image = image;
                             pictureBox.Refresh();
