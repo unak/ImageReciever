@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApp1", "WindowsFormsApp1\WindowsFormsApp1.csproj", "{35E52A66-D928-498C-BC46-C972BA1D4438}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageReciever", "WindowsFormsApp1\ImageReciever.csproj", "{35E52A66-D928-498C-BC46-C972BA1D4438}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
