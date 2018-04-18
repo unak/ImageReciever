@@ -15,7 +15,7 @@ Run `imr.exe` and send plain image data (JPEG, PNG or etc.) via TCP/IP socket.
 The target port is shown at the title bar of `imr.exe`.
 
 You can use `imgcat` (or `imgcat.cmd` on Windows) script for an example of sending.
-These scripts requires Ruby.
+These scripts require Ruby.
 
 License
 -------
