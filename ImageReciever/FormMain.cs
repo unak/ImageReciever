@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -27,6 +28,8 @@ namespace ImageReciever
         public FormMain()
         {
             InitializeComponent();
+
+            toolTip.SetToolTip(pictureBox, null);
 
             waiter.Reset();
             server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -72,6 +75,7 @@ namespace ImageReciever
                         {
                             var oldImage = pictureBox.Image;
                             pictureBox.Image = null;
+                            toolTip.SetToolTip(pictureBox, null);
                             pictureBox.Refresh();
                             if (oldImage != null)
                             {
@@ -81,10 +85,11 @@ namespace ImageReciever
                             Thread.Sleep(100);  // わざと0.1秒待って、空白表示時間を作る
 
                             pictureBox.Image = image;
-                            drawPos.X = (pictureBox.ClientRectangle.Width - pictureBox.Image.Width) / 2;
-                            drawPos.Y = (pictureBox.ClientRectangle.Height - pictureBox.Image.Height) / 2;
+                            drawPos.X = (pictureBox.ClientRectangle.Width - image.Width) / 2;
+                            drawPos.Y = (pictureBox.ClientRectangle.Height - image.Height) / 2;
                             dragging = false;
                             pictureBox.Refresh();
+                            toolTip.SetToolTip(pictureBox, string.Format("{0}x{1} {2}", image.Width, image.Height, image.PixelFormat));
                         }), null);
                     }, server);
                     waiter.Wait();
