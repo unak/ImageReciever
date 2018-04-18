@@ -19,13 +19,15 @@ namespace ImageReciever
         Socket server;
         Thread listener;
         CountdownEvent waiter = new CountdownEvent(1);
-        bool quit;
+        bool quit = false;
+        bool dragging = false;
+        Point dragPoint;
+        Point drawPos;
 
         public FormMain()
         {
             InitializeComponent();
 
-            quit = false;
             waiter.Reset();
             server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             server.Bind(new IPEndPoint(IPAddress.Parse("0.0.0.0"), 13908));
@@ -75,8 +77,13 @@ namespace ImageReciever
                             {
                                 oldImage.Dispose();
                             }
+
                             Thread.Sleep(100);  // わざと0.1秒待って、空白表示時間を作る
+
                             pictureBox.Image = image;
+                            drawPos.X = (pictureBox.ClientRectangle.Width - pictureBox.Image.Width) / 2;
+                            drawPos.Y = (pictureBox.ClientRectangle.Height - pictureBox.Image.Height) / 2;
+                            dragging = false;
                             pictureBox.Refresh();
                         }), null);
                     }, server);
@@ -111,6 +118,88 @@ namespace ImageReciever
             {
                 listener.Abort();
             }
+        }
+
+        private void pictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left || pictureBox.Image == null)
+            {
+                return;
+            }
+
+            this.Cursor = Cursors.Hand;
+
+            dragging = true;
+            dragPoint = new Point(e.X, e.Y);
+        }
+
+        private void pictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (pictureBox.Image == null || !dragging)
+            {
+                return;
+            }
+
+            var pos = new Point();
+            pos.X = drawPos.X + e.X - dragPoint.X;
+            pos.Y = drawPos.Y + e.Y - dragPoint.Y;
+
+            var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height);
+            var graphics = Graphics.FromImage(canvas);
+            graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
+            graphics.DrawImage(pictureBox.Image, pos.X, pos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
+            graphics.Dispose();
+            graphics = pictureBox.CreateGraphics();
+            graphics.DrawImage(canvas, new Point(0, 0));
+            graphics.Dispose();
+            canvas.Dispose();
+        }
+
+        private void pictureBox_MouseLeave(object sender, EventArgs e)
+        {
+            if (pictureBox.Image == null || !dragging)
+            {
+                return;
+            }
+
+            this.Cursor = Cursors.Arrow;
+
+            dragging = false;
+
+            var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height);
+            var graphics = Graphics.FromImage(canvas);
+            graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
+            graphics.DrawImage(pictureBox.Image, drawPos.X, drawPos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
+            graphics.Dispose();
+            graphics = pictureBox.CreateGraphics();
+            graphics.DrawImage(canvas, new Point(0, 0));
+            graphics.Dispose();
+            canvas.Dispose();
+        }
+
+        private void pictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (pictureBox.Image == null || !dragging)
+            {
+                return;
+            }
+
+            this.Cursor = Cursors.Arrow;
+
+            dragging = false;
+
+            drawPos.X += e.X - dragPoint.X;
+            drawPos.Y += e.Y - dragPoint.Y;
+
+            var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height);
+            var graphics = Graphics.FromImage(canvas);
+            graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
+            graphics.DrawImage(pictureBox.Image, drawPos.X, drawPos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
+            graphics.Dispose();
+            graphics = pictureBox.CreateGraphics();
+            graphics.DrawImage(canvas, new Point(0, 0));
+            graphics.Dispose();
+            canvas.Dispose();
         }
     }
 }
