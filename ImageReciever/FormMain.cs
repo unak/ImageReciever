@@ -187,15 +187,19 @@ namespace ImageReciever
 
         private void DrawPicture(Point pos)
         {
-            var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height);
-            var graphics = Graphics.FromImage(canvas);
-            graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
-            graphics.DrawImage(pictureBox.Image, pos.X, pos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
-            graphics.Dispose();
-            graphics = pictureBox.CreateGraphics();
-            graphics.DrawImage(canvas, new Point(0, 0));
-            graphics.Dispose();
-            canvas.Dispose();
+            using (var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height))
+            {
+                using (var graphics = Graphics.FromImage(canvas))
+                {
+                    graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
+                    graphics.DrawImage(pictureBox.Image, pos.X, pos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
+                }
+
+                using (var graphics = pictureBox.CreateGraphics())
+                {
+                    graphics.DrawImage(canvas, new Point(0, 0));
+                }
+            }
         }
     }
 }
