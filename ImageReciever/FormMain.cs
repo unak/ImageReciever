@@ -18,21 +18,114 @@ namespace ImageReciever
         Point dragPoint;
         Point drawPos;
 
+        private int Port
+        {
+            get
+            {
+                var endPoint = server.LocalEndPoint as IPEndPoint;
+                return endPoint.Port;
+            }
+        }
+
         public FormMain()
         {
             InitializeComponent();
 
             toolTip.SetToolTip(pictureBox, null);
 
+            StartListener();
+        }
+
+        private void FormMain_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            quit = true;
+            waiter.Signal();
+            for (var i = 0; i < 10; i++)
+            {
+                if (!listener.IsAlive)
+                {
+                    break;
+                }
+                Thread.Sleep(100);
+            }
+            if (!listener.IsAlive)
+            {
+                listener.Abort();
+            }
+        }
+
+        private void pictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left || pictureBox.Image == null)
+            {
+                return;
+            }
+
+            this.Cursor = Cursors.Hand;
+
+            dragging = true;
+            dragPoint = new Point(e.X, e.Y);
+        }
+
+        private void pictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (pictureBox.Image == null || !dragging)
+            {
+                return;
+            }
+
+            var pos = new Point();
+            pos.X = drawPos.X + e.X - dragPoint.X;
+            pos.Y = drawPos.Y + e.Y - dragPoint.Y;
+
+            DrawPicture(pos);
+        }
+
+        private void pictureBox_MouseLeave(object sender, EventArgs e)
+        {
+            if (pictureBox.Image == null || !dragging)
+            {
+                return;
+            }
+
+            this.Cursor = Cursors.Arrow;
+
+            dragging = false;
+
+            DrawPicture(drawPos);
+        }
+
+        private void pictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (pictureBox.Image == null || !dragging)
+            {
+                return;
+            }
+
+            this.Cursor = Cursors.Arrow;
+
+            dragging = false;
+
+            drawPos.X += e.X - dragPoint.X;
+            drawPos.Y += e.Y - dragPoint.Y;
+
+            DrawPicture(drawPos);
+        }
+
+        private void StartListener()
+        {
             waiter.Reset();
+
             server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             server.Bind(new IPEndPoint(IPAddress.Parse("0.0.0.0"), 13908));
             this.Text = string.Format("{0} - {1}", this.Port, "ImageReciever");
             server.Listen(1000);
-            listener = new Thread(() => {
+            listener = new Thread(() =>
+            {
                 while (!quit)
                 {
-                    server.BeginAccept((ar) => {
+                    server.BeginAccept((ar) =>
+                    {
                         var server = ar.AsyncState as Socket;
                         var socket = server.EndAccept(ar);
                         waiter.Signal();
@@ -92,107 +185,12 @@ namespace ImageReciever
             listener.Start();
         }
 
-        private int Port
+        private void DrawPicture(Point pos)
         {
-            get {
-                var endPoint = server.LocalEndPoint as IPEndPoint;
-                return endPoint.Port;
-            }
-        }
-
-        private void FormMain_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            quit = true;
-            waiter.Signal();
-            for (var i = 0; i < 10; i++)
-            {
-                if (!listener.IsAlive)
-                {
-                    break;
-                }
-                Thread.Sleep(100);
-            }
-            if (!listener.IsAlive)
-            {
-                listener.Abort();
-            }
-        }
-
-        private void pictureBox_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button != MouseButtons.Left || pictureBox.Image == null)
-            {
-                return;
-            }
-
-            this.Cursor = Cursors.Hand;
-
-            dragging = true;
-            dragPoint = new Point(e.X, e.Y);
-        }
-
-        private void pictureBox_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (pictureBox.Image == null || !dragging)
-            {
-                return;
-            }
-
-            var pos = new Point();
-            pos.X = drawPos.X + e.X - dragPoint.X;
-            pos.Y = drawPos.Y + e.Y - dragPoint.Y;
-
             var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height);
             var graphics = Graphics.FromImage(canvas);
             graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
             graphics.DrawImage(pictureBox.Image, pos.X, pos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
-            graphics.Dispose();
-            graphics = pictureBox.CreateGraphics();
-            graphics.DrawImage(canvas, new Point(0, 0));
-            graphics.Dispose();
-            canvas.Dispose();
-        }
-
-        private void pictureBox_MouseLeave(object sender, EventArgs e)
-        {
-            if (pictureBox.Image == null || !dragging)
-            {
-                return;
-            }
-
-            this.Cursor = Cursors.Arrow;
-
-            dragging = false;
-
-            var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height);
-            var graphics = Graphics.FromImage(canvas);
-            graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
-            graphics.DrawImage(pictureBox.Image, drawPos.X, drawPos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
-            graphics.Dispose();
-            graphics = pictureBox.CreateGraphics();
-            graphics.DrawImage(canvas, new Point(0, 0));
-            graphics.Dispose();
-            canvas.Dispose();
-        }
-
-        private void pictureBox_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (pictureBox.Image == null || !dragging)
-            {
-                return;
-            }
-
-            this.Cursor = Cursors.Arrow;
-
-            dragging = false;
-
-            drawPos.X += e.X - dragPoint.X;
-            drawPos.Y += e.Y - dragPoint.Y;
-
-            var canvas = new Bitmap(pictureBox.ClientRectangle.Width, pictureBox.ClientRectangle.Height);
-            var graphics = Graphics.FromImage(canvas);
-            graphics.FillRectangle(new SolidBrush(pictureBox.BackColor), pictureBox.ClientRectangle);
-            graphics.DrawImage(pictureBox.Image, drawPos.X, drawPos.Y, pictureBox.Image.Width, pictureBox.Image.Height);
             graphics.Dispose();
             graphics = pictureBox.CreateGraphics();
             graphics.DrawImage(canvas, new Point(0, 0));
